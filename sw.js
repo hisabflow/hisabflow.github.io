@@ -1,4 +1,4 @@
-const CACHE='hisabflow-themes-v10-20';
+const CACHE='hisabflow-themes-v10-23';
 const CORE=['./','./index.html','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 self.addEventListener('install',e=>{e.waitUntil((async()=>{const c=await caches.open(CACHE);await Promise.all(CORE.map(async u=>{try{await c.add(u)}catch(_){}}));await self.skipWaiting()})())});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);await self.clients.claim()})())});
