@@ -1,6 +1,6 @@
 <!doctype html><html lang="bn"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>HisabFlow — Smart Account Manager</title><meta name="app-version" content="7.9.2"><meta name="description" content="HisabFlow — premium personal finance and remittance workspace"><meta name="theme-color" content="#040816"><link rel="manifest" href="manifest.json">
+<title>HisabFlow — Smart Account Manager</title><meta name="app-version" content="7.9.4"><meta name="description" content="HisabFlow — premium personal finance and remittance workspace"><meta name="theme-color" content="#040816"><link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
 <style>
@@ -611,7 +611,7 @@ let S=(()=>{try{return JSON.parse(localStorage.hf||'null')}catch(e){return null}
 if(!S.theme)S.theme='dark';if(!S.lang)S.lang='en'; // HisabFlow 6.0 default appearance
 const bn=n=>Math.round(n).toLocaleString(LC()),B=(a,c)=>a*(S.rates[c]||1),F=(a,c)=>a/(S.rates[c]||1),M=(a,c=S.cur)=>SY[c]+' '+bn(a),D=(a,c)=>F(B(a,c),S.cur),sb=x=>{const n=(x.amt||0)-(x.fee||0);return x.cur=='BDT'?n:x.rate>0?n*x.rate:B(n,x.cur)};
 let V='home',fb=null,RP='m',cm=today().slice(0,7);
-function persist(){try{localStorage.hf=JSON.stringify(S)}catch(e){if(!persist.w){persist.w=1;alert('ফোনের জায়গা শেষ, ছবি মুছুন বা ব্যাকআপ নিন')}}}
+function persist(){try{localStorage.hf=JSON.stringify(S)}catch(e){try{syn('⚠ ফোনের জায়গা শেষ — নতুন ডেটা ফোনে সেভ হচ্ছে না')}catch(_){}if(!persist.w){persist.w=1;alert('ফোনের জায়গা শেষ, ছবি মুছুন বা ব্যাকআপ নিন')}}}
 function norm(){if(S.lang=='he')S.lang='bn';if(!S.lang)S.lang='en';['tx','give','send','loans','docs','tel','goals','wk','emp','rh','perks','countries','sv','wal','bk','kst','links','rmd'].forEach(k=>S[k]=S[k]||[]);S.bud=S.bud||{};S.rates=S.rates||{BDT:1};S.chal=S.chal||{amt:20,days:[]};S.chal.days=S.chal.days||[];S.owed=S.owed||{amt:0,months:0};const ilW=S.work=='IL';S.countries=S.countries.filter(k=>k!='IL');if(ilW)S.work=S.countries.find(k=>typeof k=='string')||'';['tx','give','send','loans','sv'].forEach(a=>S[a].forEach(x=>{if(x.ct=='IL')x.ct=S.work}));if(ilW){S.cur=cc().c;syncCU()}}
 function save(){S.ts=Date.now();S.cdirty=1;persist();cloud();go()}
 const id=()=>Date.now()+Math.random();
@@ -746,7 +746,7 @@ function dl(t,n,m){const a=document.createElement('a');a.href=URL.createObjectUR
 async function rs(f){if(!f)return;try{const parsed=JSON.parse(await f.text());if(!parsed||typeof parsed!=='object'||Array.isArray(parsed)||!Array.isArray(parsed.tx)||!Array.isArray(parsed.send))throw new Error('invalid');const k={pin:S.pin,fp:S.fp,done:S.done,pu:S.pu,cuid:S.cuid};S={...parsed,...k};norm();save();alert('ব্যাকআপ সফলভাবে ফেরত আনা হয়েছে')}catch{alert('ব্যাকআপ ফাইলটি সঠিক নয় বা অসম্পূর্ণ')}}
 let FBM;
 async function fbLoad(){if(FBM)return FBM;if(!FBC.apiKey)throw Error('Firebase config নেই');const u='https://www.gstatic.com/firebasejs/10.12.0/',[A,Au,Fs]=await Promise.all([import(u+'firebase-app.js'),import(u+'firebase-auth.js'),import(u+'firebase-firestore.js')]);const app=A.initializeApp(FBC);return FBM={Au,Fs,auth:Au.getAuth(app),db:Fs.getFirestore(app)}}
-async function pull(u,quiet){const m=await fbLoad();fb={db:m.db,Fs:m.Fs,uid:u.uid,u:u,ok:0,t:Date.now()};const fresh=S.cuid!=u.uid;let kept=0;if(fresh){try{const r=localStorage.getItem('hf_keep_'+u.uid);if(r){const kp=JSON.parse(r);if(kp&&typeof kp=='object'&&!hfEmptyS(kp)){S={...S,...kp,cdirty:1};kept=1;if(kp.__ban){Object.entries(kp.__ban).forEach(([x,b])=>{try{localStorage.setItem('hf_ban_'+x,b.d);if(b.r)localStorage.setItem('hf_banr_'+x,b.r)}catch(e){}});delete S.__ban}}}}catch(e){}S.pu={};S.cuid=u.uid}const old0cd=S.cdirty;const d=await m.Fs.getDoc(m.Fs.doc(m.db,'users',u.uid));fb.ok=1;pull.found=d.exists();if(d.exists()&&(d.data().ts>S.ts||(hfEmptyS(S)&&!hfEmptyJ(d.data().json))||(fresh&&!kept&&!hfEmptyJ(d.data().json)))){const cj=JSON.parse(d.data().json),k={done:S.done,nin:S.nin,pu:S.pu,cuid:S.cuid,fp:S.fp};if(!cj.pv){k.pin=S.pin;k.fp=S.fp}const old=S;S={...cj,...k};if(S.cset||S.work)S.done=1;norm();if(old.cdirty||fresh)['tx','give','send','loans','docs','tel','goals','sv','wal','bk','kst','rmd','wk','emp'].forEach(a=>{const ids=new Set((S[a]||[]).map(x=>x.id));(old[a]||[]).forEach(x=>{if(x&&x.id!=null&&!ids.has(x.id))(S[a]=S[a]||[]).push(x)})});if((old.cdirty||fresh)&&old.farm){S.farm=S.farm||{};['an','fd','sl','vc','ex','pd','ls','br','fu','wl'].forEach(k=>{const ids=new Set((S.farm[k]||[]).map(x=>x.id));(old.farm[k]||[]).forEach(x=>{if(x&&x.id!=null&&!ids.has(x.id))(S.farm[k]=S.farm[k]||[]).push(x)})})}old.tx.forEach(o=>{if(o.pic){const n=S.tx.find(x=>x.id==o.id);if(n&&!n.pic)n.pic=o.pic}});old.docs.forEach(o=>{if(o.pic){const n=S.docs.find(x=>x.id==o.id);if(n&&!n.pic)n.pic=o.pic}});if(old.pf&&old.pf.photo){S.pf=S.pf||{};if(!S.pf.photo)S.pf.photo=old.pf.photo}}await fillPics().catch(()=>{});S.g=1;try{localStorage.hf_had='1'}catch(e){}S.gem=u.email||S.gem;if(!S.name&&u.displayName){S.name=u.displayName;S.gnm=u.displayName}S.gph=u.photoURL||S.gph;if(fresh||old0cd)S.cdirty=1;try{localStorage.removeItem('hf_keep_'+u.uid)}catch(e){}if(S.cdirty)S.ts=Date.now();persist();if(S.cdirty||hfPend())cloud();if(!quiet)go()}
+async function pull(u,quiet){const m=await fbLoad();fb={db:m.db,Fs:m.Fs,uid:u.uid,u:u,ok:0,t:Date.now()};const fresh=S.cuid!=u.uid;let kept=0;if(fresh){try{const r=localStorage.getItem('hf_keep_'+u.uid);if(r){const kp=JSON.parse(r);if(kp&&typeof kp=='object'&&!hfEmptyS(kp)){S={...S,...kp,cdirty:1};kept=1;if(kp.__ban){Object.entries(kp.__ban).forEach(([x,b])=>{try{localStorage.setItem('hf_ban_'+x,b.d);if(b.r)localStorage.setItem('hf_banr_'+x,b.r)}catch(e){}});delete S.__ban}}}}catch(e){}S.pu={};S.cuid=u.uid}const old0cd=S.cdirty;const d=await m.Fs.getDoc(m.Fs.doc(m.db,'users',u.uid));fb.ok=1;pull.found=d.exists();if(d.exists()&&(d.data().ts>S.ts||(hfEmptyS(S)&&!hfEmptyJ(d.data().json))||(fresh&&!kept&&!hfEmptyJ(d.data().json)))){const cj=JSON.parse(d.data().json),k={done:S.done,nin:S.nin,pu:S.pu,cuid:S.cuid,fp:S.fp};if(!cj.pv){k.pin=S.pin;k.fp=S.fp}const old=S;S={...cj,...k};if(S.cset||S.work)S.done=1;norm();if(old.cdirty||fresh)['tx','give','send','loans','docs','tel','goals','sv','wal','bk','kst','rmd','wk','emp'].forEach(a=>{const ids=new Set((S[a]||[]).map(x=>x.id));(old[a]||[]).forEach(x=>{if(x&&x.id!=null&&!ids.has(x.id))(S[a]=S[a]||[]).push(x)})});if((old.cdirty||fresh)&&old.farm){S.farm=S.farm||{};['an','fd','sl','vc','ex','pd','ls','br','fu','wl','wk','wp','pt'].forEach(k=>{const ids=new Set((S.farm[k]||[]).map(x=>x.id));(old.farm[k]||[]).forEach(x=>{if(x&&x.id!=null&&!ids.has(x.id))(S.farm[k]=S.farm[k]||[]).push(x)})})}old.tx.forEach(o=>{if(o.pic){const n=S.tx.find(x=>x.id==o.id);if(n&&!n.pic)n.pic=o.pic}});old.docs.forEach(o=>{if(o.pic){const n=S.docs.find(x=>x.id==o.id);if(n&&!n.pic)n.pic=o.pic}});((old.farm&&old.farm.an)||[]).forEach(o=>{if(o.pic){const n=((S.farm&&S.farm.an)||[]).find(x=>x.id==o.id);if(n&&!n.pic)n.pic=o.pic}});if(old.pf&&old.pf.photo){S.pf=S.pf||{};if(!S.pf.photo)S.pf.photo=old.pf.photo}}await fillPics().catch(()=>{});S.g=1;try{localStorage.hf_had='1'}catch(e){}S.gem=u.email||S.gem;if(!S.name&&u.displayName){S.name=u.displayName;S.gnm=u.displayName}S.gph=u.photoURL||S.gph;if(fresh||old0cd)S.cdirty=1;try{localStorage.removeItem('hf_keep_'+u.uid)}catch(e){}if(S.cdirty)S.ts=Date.now();persist();if(S.cdirty||hfPend())cloud();if(!quiet)go()}
 const HFA=['tx','give','send','loans','docs','goals','sv'];
 function hfSetup(o){try{if(!o)return false;if(o.pin)return true;if(o.name&&o.name!==o.gnm)return true;if(o.banr&&Object.keys(o.banr).length)return true;if(o.pf&&(o.pf.photo||o.pf.hp))return true;if(o===S&&banKeys().length)return true}catch(e){}return false}
 function hfEmptyS(o){return HFA.every(a=>!((o&&o[a])||[]).length)&&!hfSetup(o)}
@@ -793,15 +793,15 @@ const banPk=x=>'ban_'+String(x).replace(/\W/g,'_');
 function banKeys(){const r=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('hf_ban_')==0)r.push(k.slice(7))}}catch(e){}return r}
 function banRatios(){const o={};banKeys().forEach(x=>{try{o[x]=localStorage.getItem('hf_banr_'+x)||'0.5625'}catch(e){}});return o}
 function banObj(){const o={};banKeys().forEach(x=>{try{const d=localStorage.getItem('hf_ban_'+x);if(d)o[x]={d:d,r:localStorage.getItem('hf_banr_'+x)||''}}catch(e){}});return o}
-function picsOf(){const o={};S.tx.forEach(x=>{if(x.pic)o[pk('tx',x)]=x.pic});S.docs.forEach(x=>{if(x.pic)o[pk('doc',x)]=x.pic});if(S.pf&&S.pf.photo)o.pf=S.pf.photo;banKeys().forEach(x=>{try{const v=localStorage.getItem('hf_ban_'+x);if(v)o[banPk(x)]=v}catch(e){}});return o}
-function cloudJson(){const d={...S,pv:1,syncErr:0,pu:{},cuid:'',cdirty:0,fp:''};d.tx=d.tx.map(({pic,...r})=>pic?{...r,hp:1}:r);d.docs=d.docs.map(({pic,...r})=>pic?{...r,hp:1}:r);if(d.pf){const h=!!(S.pf&&S.pf.photo);d.pf={...d.pf,photo:''};if(h)d.pf.hp=1}d.banr={...(S.banr||{}),...banRatios()};const j=JSON.stringify(d);S.syncErr=new Blob([j]).size>1000000?1:0;return j}
+function picsOf(){const o={};S.tx.forEach(x=>{if(x.pic)o[pk('tx',x)]=x.pic});S.docs.forEach(x=>{if(x.pic)o[pk('doc',x)]=x.pic});((S.farm&&S.farm.an)||[]).forEach(x=>{if(x.pic)o[pk('an',x)]=x.pic});if(S.pf&&S.pf.photo)o.pf=S.pf.photo;banKeys().forEach(x=>{try{const v=localStorage.getItem('hf_ban_'+x);if(v)o[banPk(x)]=v}catch(e){}});return o}
+function cloudJson(){const d={...S,pv:1,syncErr:0,pu:{},cuid:'',cdirty:0,fp:''};d.tx=d.tx.map(({pic,...r})=>pic?{...r,hp:1}:r);d.docs=d.docs.map(({pic,...r})=>pic?{...r,hp:1}:r);if(d.farm&&d.farm.an)d.farm={...d.farm,an:d.farm.an.map(({pic,...r})=>pic?{...r,hp:1}:r)};if(d.pf){const h=!!(S.pf&&S.pf.photo);d.pf={...d.pf,photo:''};if(h)d.pf.hp=1}d.banr={...(S.banr||{}),...banRatios()};const j=JSON.stringify(d);S.syncErr=new Blob([j]).size>1000000?1:0;return j}
 function syn(m){cloud.msg=m;const e=document.getElementById('syn');if(e)e.textContent=m}
 let SP=0,SA=0;
 async function syncPics(){if(SP){SA=1;return 0}SP=1;let bad=0;try{do{SA=0;const cur=picsOf(),pu=S.pu=S.pu||{},F=fb.Fs,ref=k=>F.doc(fb.db,'users',fb.uid,'pics',k);
 for(const [k,v] of Object.entries(cur))if(pu[k]!==v.length){try{await F.setDoc(ref(k),{d:v});pu[k]=v.length}catch(e){bad++;if(e.code=='permission-denied')throw e}}
 for(const k of Object.keys(pu))if(!(k in cur)){try{await F.deleteDoc(ref(k));delete pu[k]}catch(e){bad++}}
 persist()}while(SA)}finally{SP=0}return bad}
-async function fillPics(){const need=[];S.tx.forEach(x=>{if(x.hp&&!x.pic)need.push([pk('tx',x),x])});S.docs.forEach(x=>{if(x.hp&&!x.pic)need.push([pk('doc',x),x])});const pf=S.pf&&S.pf.hp&&!S.pf.photo;const bn=[];try{Object.keys(S.banr||{}).forEach(x=>{if(!localStorage.getItem('hf_ban_'+x))bn.push(x)})}catch(e){}if(!need.length&&!pf&&!bn.length)return;
+async function fillPics(){const need=[];S.tx.forEach(x=>{if(x.hp&&!x.pic)need.push([pk('tx',x),x])});S.docs.forEach(x=>{if(x.hp&&!x.pic)need.push([pk('doc',x),x])});((S.farm&&S.farm.an)||[]).forEach(x=>{if(x.hp&&!x.pic)need.push([pk('an',x),x])});const pf=S.pf&&S.pf.hp&&!S.pf.photo;const bn=[];try{Object.keys(S.banr||{}).forEach(x=>{if(!localStorage.getItem('hf_ban_'+x))bn.push(x)})}catch(e){}if(!need.length&&!pf&&!bn.length)return;
 const F=fb.Fs,m={};S.pu=S.pu||{};const want=[];if(pf)want.push('pf');bn.forEach(x=>want.push(banPk(x)));await Promise.all(want.map(async k=>{try{const d=await F.getDoc(F.doc(fb.db,'users',fb.uid,'pics',k));if(d.exists())m[k]=d.data().d}catch(e){}}));if(need.length){try{const snap=await F.getDocs(F.collection(fb.db,'users',fb.uid,'pics'));snap.forEach(d=>{if(!(d.id in m))m[d.id]=d.data().d})}catch(e){}}const miss=want.concat(need.map(x=>x[0])).some(k=>!m[k]);if(!miss)fillPics.n=0;else if((fillPics.n||0)<3&&!fillPics.t){fillPics.n=(fillPics.n||0)+1;fillPics.t=setTimeout(()=>{fillPics.t=0;fillPics().then(()=>go()).catch(()=>{})},6000)}
 need.forEach(([k,x])=>{if(m[k]){x.pic=m[k];delete x.hp;S.pu[k]=m[k].length}});if(pf&&m.pf){S.pf.photo=m.pf;delete S.pf.hp;S.pu.pf=m.pf.length}bn.forEach(x=>{const v=m[banPk(x)];if(v){try{localStorage.setItem('hf_ban_'+x,v);localStorage.setItem('hf_banr_'+x,(S.banr&&S.banr[x])||'0.5625');S.pu[banPk(x)]=v.length}catch(e){}}});persist()}
 function cloud(){pubShare();if(!fb)return;cloud.last=Date.now();if(!fb.ok){if(Date.now()-(fb.t||0)>8000){fb.t=Date.now();pull(fb.u).catch(()=>syn('📴 অফলাইন: ফোনে সেভ আছে, নেট এলে নিজে সিঙ্ক হবে'))}return}const j=cloudJson(),ts=S.ts;if(S.syncErr)return syn('⚠ ডেটা বেশি বড় হয়ে গেছে, পুরনো এন্ট্রি মুছুন');
@@ -2072,7 +2072,7 @@ const en={};[KI,SL,XC,FD,ST].forEach(a=>a.forEach(x=>{if(!EN[x[0]])en[x[0]]=x[1]
 Object.keys(EXTRA).forEach(k=>{if(!EN[k])en[k]=EXTRA[k]});Object.keys(EXT2).forEach(k=>{if(!EN[k])en[k]=EXT2[k]});
 Object.assign(EN,en);ENK=null;
 const L=(a,k)=>{const f=a.find(x=>x[0]==k);return f?T(f[0],f[1]):k};
-const FM=()=>{const f=S.farm=S.farm||{};['an','fd','sl','vc','ex','pd','ls','br','fu','wl'].forEach(k=>f[k]=f[k]||[]);S.flds=FLDS();if(S.field&&(!BDM()||!S.flds.includes(S.field)))S.field='';return f};
+const FM=()=>{const f=S.farm=S.farm||{};['an','fd','sl','vc','ex','pd','ls','br','fu','wl','wk','wp','pt'].forEach(k=>f[k]=f[k]||[]);f.kinds=f.kinds||[];S.flds=FLDS();if(S.field&&(!BDM()||!S.flds.includes(S.field)))S.field='';return f};
 const GEN=()=>T('— সব/সাধারণ —','— All / general —');
 const labs=()=>{const seen={};return FM().an.map(a=>{let l=(L(KI,a.kind)+' '+(a.tag||'')).trim();seen[l]=(seen[l]||0)+1;if(seen[l]>1)l+=' #'+seen[l];return [l,a]})};
 const albl=i=>{const f=labs().find(x=>x[1].id==i);return f?f[0]:GEN()};
@@ -2093,7 +2093,7 @@ function cost(a){
  f.fd.forEach(e=>{if(e.aid==a.id)feed+=e.amt||0;else if(!e.aid&&holds(a,e.date)){const h=heads(e.date);if(h)feed+=(e.amt||0)*(a.qty||1)/h}});
  f.ex.forEach(e=>{if(e.aid==a.id)oth+=e.amt||0;else if(!e.aid&&holds(a,e.date)){const h=heads(e.date);if(h)oth+=(e.amt||0)*(a.qty||1)/h}});
  f.vc.forEach(v=>{if(!v.done||!(v.cost>0))return;if(v.aid==a.id)oth+=v.cost;else if(!v.aid&&holds(a,v.donedate)){const h=heads(v.donedate);if(h)oth+=v.cost*(a.qty||1)/h}});
- const buy=a.buy||0,sold=f.sl.filter(s=>s.aid==a.id).reduce((n,s)=>n+(s.amt||0),0),tot=buy+feed+oth;
+ const buy=a.buy||0,sold=f.sl.filter(s=>s.aid==a.id).reduce((n,s)=>n+(s.amt||0),0)+f.pd.filter(p=>p.aid==a.id).reduce((n,p)=>n+(p.inc||0),0),tot=buy+feed+oth;
  return {buy,feed,oth,tot,sold,profit:sold-tot};
 }
 const days=a=>Math.max(1,Math.round((new Date(a.end||today())-new Date(a.date||today()))/864e5)+1);
@@ -2109,7 +2109,7 @@ const CFG={
  br:{t:()=>T('প্রজনন / গাভিন','Breeding / pregnancy'),f:()=>[ASEL(),['date',T('প্রজননের তারিখ','Breeding date'),'date'],['note',T('নোট (ষাঁড়/ডাক্তার)','Note'),'text']],ok:o=>!!aid(o.aid),fix:r=>{const a=A(r.aid),g=a&&GEST[a.kind];r.due=g?LD(new Date(new Date(r.date).getTime()+g*864e5)):''},mir:()=>['out','',0,'','']},
  fu:{t:()=>T('খাবার ব্যবহার','Feed used'),f:()=>[['kg',T('কত কেজি খাওয়ালেন','Kg fed'),'number'],['date',T('তারিখ','Date'),'date']],ok:o=>o.kg>0,fix:()=>{},mir:()=>['out','',0,'','']},
  wl:{t:()=>T('ওজন লিখুন','Record weight'),f:()=>[ASEL(),['kg',T('ওজন (কেজি)','Weight (kg)'),'number'],['date',T('তারিখ','Date'),'date']],ok:o=>o.kg>0&&!!aid(o.aid),fix:r=>{const a=A(r.aid);if(a&&(!a.wd||r.date>=a.wd)){a.wt=r.kg;a.wd=r.date}},mir:()=>['out','',0,'','']},
- pd:{t:()=>T('দুধ / ডিম উৎপাদন','Milk / egg production'),f:()=>[ASEL(),['what',T('কী','What'),'select',PK.map(x=>x[0])],['qty',T('পরিমাণ (লিটার/সংখ্যা)','Quantity (litres/count)'),'number'],['date',T('তারিখ','Date'),'date']],ok:o=>o.qty>0,fix:()=>{},mir:()=>['out','',0,'','']},
+ pd:{t:()=>T('দুধ / ডিম উৎপাদন','Milk / egg production'),f:()=>[ASEL(),['what',T('কী','What'),'select',PK.map(x=>x[0])],['qty',T('পরিমাণ (লিটার/সংখ্যা)','Quantity (litres/count)'),'number'],['price',T('প্রতি লিটার/পিস বিক্রির দাম (৳, না বেচলে ফাঁকা)','Price per litre/piece (৳, blank if not sold)'),'number'],['date',T('তারিখ','Date'),'date']],ok:o=>o.qty>0,fix:r=>{r.inc=r.price>0?r.qty*r.price:0},mir:r=>r.inc>0?['in','খামার বিক্রি',r.inc,r.date,L(PK,r.what)]:['out','',0,'','']},
  ls:{t:()=>T('মৃত্যু / ক্ষতি','Death / loss'),f:()=>[ASEL(),['qty',T('কয়টা মারা গেল/হারাল','How many lost'),'number'],['date',T('তারিখ','Date'),'date'],['note',T('নোট/কারণ','Note / cause'),'text']],ok:o=>o.qty>0&&!!aid(o.aid),fix:r=>{const a=A(r.aid);if(a){a.qty=Math.max(0,(a.qty||1)+(r.ap||0)-r.qty);if(a.qty<=0){a.status='মৃত';a.end=r.date}else if(a.status=='মৃত'){a.status='আছে';a.end=''}}r.ap=r.qty},mir:()=>['out','',0,'','']},
  fd:{t:()=>T('খাবার খরচ','Feed cost'),f:()=>[ASEL(),['item',T('কী খাওয়ালেন (খড়, ভুসি, দানা)','Feed (hay, bran, grain)'),'text'],['kg',T('কত কেজি','Kg'),'number'],['amt',T('কত টাকা','Cost'),'number'],['date',T('তারিখ','Date'),'date']],
   ok:o=>o.amt>0,fix:()=>{},mir:r=>['out','খামারের খাবার',r.amt,r.date,r.item]},
@@ -2122,34 +2122,55 @@ const CFG={
   ok:o=>!!o.due,fix:r=>{if(r.done&&!r.donedate)r.donedate=today();if(!r.done)r.donedate=''},
   mir:r=>r.done&&r.cost>0?['out','টিকা ও ওষুধ',r.cost,r.donedate,r.what]:['out','',0,'','']}
 };
+const wlab=()=>{const seen={};return FM().wk.map(w=>{let l=(w.name||'—');seen[l]=(seen[l]||0)+1;if(seen[l]>1)l+=' #'+seen[l];return [l,w]})};
+const widOf=l=>{const f=wlab().find(x=>x[0]==l);return f?f[1].id:''};
+const wname=i=>{const f=wlab().find(x=>x[1].id==i);return f?f[0]:'—'};
+const wmon=d=>{const a=new Date(d||today()),b=new Date(today());return Math.max(1,(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()+1)};
+CFG.wk={t:()=>T('শ্রমিক / রাখাল','Worker'),f:()=>[['name',T('নাম','Name'),'text'],['sal',T('মাসিক বেতন (৳)','Monthly salary (৳)'),'number'],['date',T('কাজ শুরুর তারিখ','Start date'),'date']],ok:o=>!!(o.name||'').trim()&&o.sal>0,fix:()=>{},mir:()=>['out','',0,'','']};
+CFG.wp={t:()=>T('বেতন দিন','Pay salary'),f:()=>[['wid',T('কোন শ্রমিক','Worker'),'select',wlab().map(x=>x[0])],['amt',T('কত টাকা','Amount'),'number'],['date',T('তারিখ','Date'),'date']],ok:o=>o.amt>0&&!!widOf(o.wid),fix:(r,o)=>{r.wid=widOf(o.wid)},mir:r=>['out','খামারের খরচ',r.amt,r.date,T('বেতন','Salary')+' · '+wname(r.wid)]};
+CFG.pt={t:()=>T('অংশীদার','Partner'),f:()=>[['name',T('নাম','Name'),'text'],['amt',T('কত টাকা দিয়েছেন (৳)','Amount invested (৳)'),'number'],['share',T('লাভের অংশ (%)','Profit share (%)'),'number'],['date',T('তারিখ','Date'),'date'],['note',T('নোট','Note'),'text']],ok:o=>!!(o.name||'').trim()&&o.share>0&&o.share<=100,fix:()=>{},mir:()=>['out','',0,'','']};
+window.fmPay=i=>fmAdd('wp',0,{wid:wname(i)});
 window.fmAdd=function(k,i,pre){
  if(k=='an')return fmAnimal(i);
+ if(k=='wp'&&!FM().wk.length)return warn(T('আগে একজন শ্রমিক যোগ করুন','Add a worker first'));
  const c=CFG[k],f=FM()[k],r0=i?f.find(x=>x.id==i):null;
- const init=r0?{...r0,aid:albl(r0.aid),...(k=='sl'?{bk:(r0.amt||0)-(r0.paid||0)}:{})}:{date:today(),aid:GEN(),...(k=='vc'?{due:today()}:{}),...(pre||{})};
+ const init=r0?{...r0,aid:albl(r0.aid),...(k=='sl'?{bk:(r0.amt||0)-(r0.paid||0)}:{}),...(k=='wp'?{wid:wname(r0.wid)}:{})}:{date:today(),aid:GEN(),...(k=='vc'?{due:today()}:{}),...(pre||{})};
  form(c.t(),c.f(),o=>{
-  if(!c.ok(o))return warn(k=='vc'?T('তারিখ দিন','Enter a date'):T('টাকার পরিমাণ দিন','Enter the amount'));
+  if(!c.ok(o))return warn(k=='vc'?T('তারিখ দিন','Enter a date'):(k=='wk'||k=='pt')?T('নাম ও সংখ্যা ঠিকমতো দিন','Fill in the name and numbers'):T('টাকার পরিমাণ দিন','Enter the amount'));
   const r=r0||{id:id()};Object.assign(r,o,{aid:aid(o.aid)});c.fix(r,o);if(!r0)f.push(r);
   const m=c.mir(r);mir(r,m[0],m[1],m[2],m[3],m[4]);save();
  },init);
 };
 window.fmSell=i=>fmAdd('sl',0,{aid:albl(i),what:'পশু',qty:(A(i)||{}).qty||1});
+const kindList=()=>[...KI.slice(0,-1).map(x=>x[0]),...(FM().kinds||[]),KI[KI.length-1][0]];
+window.fmCap=function(){const f=FM();form(T('খামারের মূলধন','Farm capital'),[['cap',T('মোট কত টাকা মূলধন নিয়ে নেমেছেন (৳)','Total capital invested (৳)'),'number'],['capnote',T('নোট (যেমন: নিজের টাকা / ঋণ)','Note (e.g. own money / loan)'),'text']],o=>{f.cap=o.cap>0?o.cap:0;f.capn=o.capnote||'';save()},{cap:f.cap||'',capnote:f.capn||''})};
 window.fmAnimal=function(i){
  let a=i?A(i):null;
+ if(a&&a.kind&&!kindList().includes(a.kind))FM().kinds.push(a.kind);
  form(a?T('পশু/ব্যাচ সম্পাদনা','Edit animal / batch'):T('পশু/ব্যাচ যোগ','Add animal / batch'),[
-  ['kind',T('ধরন','Type'),'select',KI.map(x=>x[0])],
-  ['tag',T('ট্যাগ/নাম (যেমন: লাল গরু, ব্রয়লার ১)','Tag / name (e.g. Red cow, Broiler 1)'),'text'],
+  ['kind',T('ধরন','Type'),'select',kindList()],
+  ['tag',T('ট্যাগ/নাম (যেমন: লাল গরু, ব্রয়লার ১)','Tag / name (e.g. Red cow, Broiler 1)'),'text'],['ear',T('কানের ট্যাগ/নম্বর','Ear tag / number'),'text'],
   ['qty',T('সংখ্যা (ব্যাচ হলে, যেমন ১০০)','Count (for a batch, e.g. 100)'),'number'],
   ['breed',T('জাত','Breed'),'text'],
   ['buy',T('কেনার দাম (মোট)','Purchase price (total)'),'number'],
-  ['wt',T('ওজন (কেজি)','Weight (kg)'),'number'],
+  ['wt',T('ওজন (কেজি)','Weight (kg)'),'number'],['tgt',T('বিক্রির লক্ষ্য দাম (মোট)','Target sale price (total)'),'number'],
   ['date',T('কেনা/শুরুর তারিখ','Bought / start date'),'date'],
   ...(a?[['status',T('অবস্থা','Status'),'select',ST.map(x=>x[0])],['end',T('বিক্রি/মৃত্যুর তারিখ','Sold / death date'),'date']]:[]),
-  ['note',T('নোট','Note'),'text']],o=>{
-  o.qty=o.qty>0?o.qty:1;
+  ['pic',T('ছবি','Photo'),'file'],['note',T('নোট','Note'),'text']],o=>{
+  o.qty=o.qty>0?o.qty:1;if(!o.pic)delete o.pic;
   if(a)Object.assign(a,o);else{o.id=id();o.status='আছে';FM().an.push(o);a=o}
+  if(o.pic)delete a.hp;
   if(a.status=='আছে')a.end='';else if(!a.end)a.end=today();
   mir(a,'out','পশু ক্রয়',a.buy,a.date,(L(KI,a.kind)+' '+(a.tag||'')).trim());save();
  },a?{...a}:{date:today(),qty:1});
+ {const md=[...document.querySelectorAll('.md')].pop(),sel=md&&md.querySelector('select[name=kind]');
+ if(sel){const w=document.createElement('div');w.style.cssText='display:flex;gap:8px;align-items:center';sel.parentNode.insertBefore(w,sel);w.appendChild(sel);sel.style.flex='1';
+  const pb=document.createElement('button');pb.type='button';pb.textContent='+';pb.title=T('নিজে নাম লিখে যোগ করুন','Add your own name');pb.setAttribute('aria-label',pb.title);
+  pb.style.cssText='flex:none;width:46px;height:46px;margin:0;padding:0;font-size:26px;line-height:1;border:0;border-radius:12px;background:var(--g);color:#fff';
+  pb.onclick=()=>{const n=(prompt(T('পশুর নাম লিখুন (যেমন: কবুতর, খরগোশ)','Animal name (e.g. Pigeon, Rabbit)'))||'').trim();if(!n)return;
+   const ex=[...sel.options].find(o=>o.value.toLowerCase()==n.toLowerCase());if(ex){sel.value=ex.value;return}
+   FM().kinds.push(n);const op=document.createElement('option');op.value=n;op.textContent=n;sel.insertBefore(op,sel.options[sel.options.length-1]);sel.value=n};
+  w.appendChild(pb)}}
 };
 window.fmDone=function(i){
  const v=FM().vc.find(x=>x.id==i);if(!v)return;
@@ -2169,8 +2190,8 @@ function dropRec(k,i){
  f[k].splice(ix,1);
  if(k=='an')['fd','ex','vc','sl','pd','ls','br','wl'].forEach(q=>f[q].forEach(x=>{if(x.aid==i)x.aid=''}));
 }
-window.fmDel=function(k,i){if(confirm(T('মুছবেন?','Delete?'))){dropRec(k,i);save()}};
-window.farmTxDel=function(txid){const f=FM();['an','fd','sl','vc','ex','pd','ls','br','fu','wl'].forEach(k=>{const r=f[k].find(x=>x.txid==txid);if(r){delete r.txid;if(k=='an')r.buy=0;else dropRec(k,r.id)}})};
+window.fmDel=function(k,i){if(confirm(T('মুছবেন?','Delete?'))){if(k=='wk')FM().wp.filter(x=>x.wid==i).map(x=>x.id).forEach(q=>dropRec('wp',q));dropRec(k,i);save()}};
+window.farmTxDel=function(txid){const f=FM();['an','fd','sl','vc','ex','pd','ls','br','fu','wl','wk','wp','pt'].forEach(k=>{const r=f[k].find(x=>x.txid==txid);if(r){delete r.txid;if(k=='an')r.buy=0;else dropRec(k,r.id)}})};
 window.fmField=function(k){S.field=k;persist();go()};
 window.fldHtml=v=>{FM();return S.flds.length>1?`<label>${T('ক্ষেত্র','Field')}<select data-x="fld">${S.flds.map(k=>`<option value="${esc(k)}" ${(v||FLD0())==k?'selected':''}>${esc(k)}</option>`).join('')}</select></label>`:''};
 
@@ -2178,46 +2199,66 @@ window.fldHtml=v=>{FM();return S.flds.length>1?`<label>${T('ক্ষেত্�
 const chips=()=>{FM();if(S.flds.length<2)return '';const mk=(k,l)=>`<button class="${(S.field||'')==k?'on':''}" onclick="fmField('${k}')">${l}</button>`;return `<div class="fm-chips">${mk('',T('সব','All'))}${S.flds.map(k=>mk(k,esc(L(FD,k)))).join('')}</div>`};
 const notice=()=>{const d=dueVc(in7());return d.length?`<div class="notice warn">💉 ${T('টিকা/ওষুধের সময়','Vaccine / medicine due')}: ${esc(d.slice(0,3).map(vname).join(', '))}</div>`:''};
 const _home=R.home;
-window.fmHomeBlock=function(){FM();return chips()+(S.flds.length>1?fieldCard():'')+(S.flds.includes('খামার')?notice()+brNotice():'')};
+window.fmHomeBlock=function(){FM();return chips()+(S.flds.length>1?fieldCard():'')+(S.flds.includes('খামার')?notice()+brNotice()+feedNotice():'')};
 
 /* ---------- farm page ---------- */
 const fr=(a,b,c,cls,k,i,extra)=>`<div class=row><div>${esc(a)}<small>${esc(b||'')}</small></div><div class="${cls||''}">${c}${extra||''}<button class=x onclick="fmAdd('${k}',${i})">✎</button><button class=x onclick="fmDel('${k}',${i})">✕</button></div></div>`;
 const fieldCard=()=>{const fl=S.flds.map(k=>{const t=S.tx.filter(x=>(!x.ct||x.ct==S.work)&&(x.fld||FLD0())==k&&thisM(x));const i=t.filter(x=>x.t=='in').reduce((n,x)=>n+D(x.amt-(x.cut||0),x.cur),0),e=t.filter(x=>x.t=='out').reduce((n,x)=>n+D(x.amt,x.cur),0);return [k,i,e]});const ti=fl.reduce((n,x)=>n+x[1],0),te=fl.reduce((n,x)=>n+x[2],0);return `<h3>${T('এই মাসে ক্ষেত্র অনুযায়ী','This month by field')}</h3><div class=card>${fl.map(x=>row(L(FD,x[0]),T('আয় ','In ')+M(x[1])+' · '+T('খরচ ','Out ')+M(x[2]),sgn(x[1]-x[2]),x[1]-x[2]>=0?'pos':'neg')).join('')}${fl.length>1?row(T('সব মিলিয়ে','Total'),T('আয় ','In ')+M(ti)+' · '+T('খরচ ','Out ')+M(te),sgn(ti-te),ti-te>=0?'pos':'neg'):''}</div>`};
 const prodCard=()=>{const m=today().slice(0,7),t={};FM().pd.forEach(p=>{if((p.date||'').slice(0,7)==m)t[p.what]=(t[p.what]||0)+(p.qty||0)});const k=Object.keys(t);return k.length?`<div class=card><b>🥛 ${T('এই মাসের উৎপাদন','This month production')}</b>${k.map(x=>`<div class=row><div>${L(PK,x)}</div><div>${bn(t[x])}</div></div>`).join('')}</div>`:''};
-window.fmBorn=i=>{const r=FM().br.find(x=>x.id==i);if(r){r.born=today();save()}};
+window.fmBorn=i=>{const r=FM().br.find(x=>x.id==i);if(r&&!r.born){r.born=today();const m=A(r.aid);if(m)FM().an.push({id:id(),kind:m.kind,tag:T('বাচ্চা','Calf/kid')+(m.tag?' · '+m.tag:''),qty:1,breed:m.breed||'',buy:0,date:today(),status:'আছে',end:'',mo:m.id,note:T('জন্ম','Born')});save()}};
 const dueBr=lim=>FM().br.filter(r=>r.due&&!r.born&&r.due<=lim).sort((a,b)=>a.due<b.due?-1:1);
 const brCard=()=>{const d=dueBr(LD(new Date(Date.now()+30*864e5)));return d.length?`<div class=card><b>🐄 ${T('বাচ্চা হওয়ার সময়','Expected delivery')}</b>${d.map(r=>`<div class=row><div>${esc(albl(r.aid))}<small class="${r.due<today()?'neg':''}">${r.due}${r.due<today()?' · '+T('সময় পার','overdue'):''}</small></div><button class=pri style="width:auto;margin:0" onclick="fmBorn(${r.id})">✓ ${T('হয়েছে','Born')}</button></div>`).join('')}</div>`:''};
 const brNotice=()=>{const d=dueBr(in7());return d.length?`<div class="notice warn">🐄 ${T('বাচ্চা হওয়ার সময়','Delivery due')}: ${esc(d.slice(0,3).map(r=>albl(r.aid)).join(', '))}</div>`:''};
-const monthCard=()=>{const f=FM(),m=today().slice(0,7),im=d=>(d||'').slice(0,7)==m,su=(a,k,df)=>a.filter(x=>im(x[df||'date'])).reduce((n,x)=>n+(x[k]||0),0);const sales=su(f.sl,'amt'),spent=su(f.an,'buy')+su(f.fd,'amt')+su(f.ex,'amt')+f.vc.filter(v=>v.done&&im(v.donedate)).reduce((n,v)=>n+(v.cost||0),0),p=sales-spent;return `<div class=card><b>📅 ${T('এই মাসের হিসাব','This month')}</b><div class=row><div>${T('বিক্রি','Sales')}</div><div class=pos>${M(sales)}</div></div><div class=row><div>${T('খরচ','Costs')}</div><div class=neg>${M(spent)}</div></div><div class=row><div><b>${T('লাভ-ক্ষতি','Profit / loss')}</b></div><div class="${p>=0?'pos':'neg'}"><b>${sgn(p)}</b></div></div></div>`};
+const monthCard=()=>{const f=FM(),m=today().slice(0,7),im=d=>(d||'').slice(0,7)==m,su=(a,k,df)=>a.filter(x=>im(x[df||'date'])).reduce((n,x)=>n+(x[k]||0),0);const sales=su(f.sl,'amt')+su(f.pd,'inc'),spent=su(f.wp,'amt')+su(f.an,'buy')+su(f.fd,'amt')+su(f.ex,'amt')+f.vc.filter(v=>v.done&&im(v.donedate)).reduce((n,v)=>n+(v.cost||0),0),p=sales-spent;return `<div class=card><b>📅 ${T('এই মাসের হিসাব','This month')}</b><div class=row><div>${T('বিক্রি','Sales')}</div><div class=pos>${M(sales)}</div></div><div class=row><div>${T('খরচ','Costs')}</div><div class=neg>${M(spent)}</div></div><div class=row><div><b>${T('লাভ-ক্ষতি','Profit / loss')}</b></div><div class="${p>=0?'pos':'neg'}"><b>${sgn(p)}</b></div></div></div>`};
 const stockCard=()=>{const f=FM(),b=sm(f.fd,'kg'),u=sm(f.fu,'kg');if(!b&&!u)return '';const st=b-u,w=LD(new Date(Date.now()-7*864e5)),r=f.fu.filter(x=>(x.date||'')>=w).reduce((n,x)=>n+(x.kg||0),0)/7;return `<div class=card><b>🌾 ${T('খাবারের স্টক','Feed stock')}</b><div class=row><div>${T('মজুত','In stock')}${r>0&&st>0?`<small>${T('চলবে প্রায়','Lasts about')} ${bn(Math.floor(st/r))} ${T('দিন','days')}</small>`:''}</div><div class="${st<=0?'neg':''}">${bn(Math.round(st*10)/10)} ${T('কেজি','kg')}</div></div></div>`};
 const sgn=v=>(v>=0?'+':'−')+M(Math.abs(v));
+const det=(t,n,body)=>`<details class=card><summary><b>${t}</b> (${bn(n)})</summary>${body||'<small>—</small>'}</details>`;
+const xtra=(a,c)=>{const f=FM(),lost=f.ls.filter(x=>x.aid==a.id).reduce((n,x)=>n+(x.qty||0),0),sq=f.sl.filter(x=>x.aid==a.id&&x.what=='পশু').reduce((n,x)=>n+(x.sq||0),0),ini=(a.qty||0)+lost+sq;let h='';
+ if(a.tgt>0&&a.status=='আছে')h+=`<div class=row><div>${T('লক্ষ্য দাম','Target price')}<small>${T('বিক্রি হলে সম্ভাব্য লাভ','Expected profit')}</small></div><div class="${a.tgt-c.tot>=0?'pos':'neg'}">${M(a.tgt)} · ${sgn(a.tgt-c.tot)}</div></div>`;
+ if(ini>1||lost>0)h+=`<div class=row><div>${T('মৃত্যুর হার','Mortality')}<small>${T('চলছে ','Running ')}${bn(days(a))} ${T('দিন','days')}</small></div><div class="${lost>0?'neg':''}">${bn(Math.round(lost/Math.max(1,ini)*1000)/10)}% (${bn(lost)}/${bn(ini)})</div></div>`;
+ const w=f.wl.filter(x=>x.aid==a.id).sort((x,y)=>x.date<y.date?-1:1),fk=f.fd.filter(x=>x.aid==a.id).reduce((n,x)=>n+(x.kg||0),0);
+ if(w.length>1&&fk>0){const g=(w[w.length-1].kg-w[0].kg)*(a.qty||1);if(g>0)h+=`<div class=row><div>${T('খাবার ÷ ওজন বৃদ্ধি (FCR)','Feed conversion (FCR)')}<small>${T('কম হলে ভালো','Lower is better')}</small></div><div>${bn(Math.round(fk/g*100)/100)}</div></div>`}
+ return h};
+const ptSec=prof=>{const f=FM(),ts=sm(f.pt,'share');return det(T('অংশীদার','Partners'),f.pt.length,f.pt.map(p=>fr(p.name,T('দিয়েছেন ','Invested ')+M(p.amt||0)+' · '+bn(p.share||0)+'% · '+T('লাভ-ক্ষতির অংশ','share of P/L'),sgn(prof*(p.share||0)/100),prof>=0?'pos':'neg','pt',p.id)).join('')+(ts>100?`<small class=neg>⚠ ${T('মোট অংশ ১০০% এর বেশি','Total share is over 100%')}</small>`:ts>0?`<small>${T('আপনার অংশ','Your share')}: ${bn(Math.round((100-ts)*10)/10)}%</small>`:''))};
+const wkSec=()=>{const f=FM();return det(T('শ্রমিক ও বেতন','Workers & salary'),f.wk.length,f.wk.map(w=>{const paid=f.wp.filter(x=>x.wid==w.id).reduce((n,x)=>n+(x.amt||0),0),owe=wmon(w.date)*(w.sal||0)-paid;return `<div class=row><div>${esc(w.name)}<small>${T('বেতন ','Salary ')}${M(w.sal||0)}/${T('মাস','mo')} · ${T('দেওয়া ','Paid ')}${M(paid)}</small></div><div class="${owe>0?'neg':'pos'}">${owe>0?T('বাকি ','Due ')+M(owe):T('পরিশোধ','Clear')}<button class=x onclick="fmPay(${w.id})">৳</button><button class=x onclick="fmAdd('wk',${w.id})">✎</button><button class=x onclick="fmDel('wk',${w.id})">✕</button></div></div>`}).join('')+f.wp.slice().reverse().slice(0,15).map(p=>fr(wname(p.wid)+' · '+T('বেতন','Salary'),p.date,M(p.amt),'neg','wp',p.id)).join(''))};
+const costCard=()=>{const f=FM(),m={},add=(k,v)=>{if(v>0)m[k]=(m[k]||0)+v};add(T('পশু ক্রয়','Livestock'),sm(f.an,'buy'));add(T('খাবার','Feed'),sm(f.fd,'amt'));add(T('টিকা/ওষুধ','Medicine'),f.vc.filter(v=>v.done).reduce((n,v)=>n+(v.cost||0),0));add(T('বেতন','Salary'),sm(f.wp,'amt'));f.ex.forEach(e=>add(L(XC,e.cat),e.amt||0));const e=Object.entries(m).sort((a,b)=>b[1]-a[1]),t=e.reduce((n,x)=>n+x[1],0);return e.length?`<div class=card><b>📊 ${T('কোন খাতে কত খরচ','Cost breakdown')}</b>${e.map(([k,v])=>`<div style="margin-top:8px"><div class=row style="margin:0"><div>${esc(k)}</div><div>${M(v)} · ${bn(Math.round(v/t*100))}%</div></div><div style="height:7px;border-radius:5px;background:#8883"><i style="display:block;height:100%;width:${Math.max(2,v/t*100)}%;border-radius:5px;background:var(--g)"></i></div></div>`).join('')}</div>`:''};
+const feedNotice=()=>{const f=FM(),b=sm(f.fd,'kg'),u=sm(f.fu,'kg');if(!b||!u)return '';const st=b-u,w=LD(new Date(Date.now()-7*864e5)),r=f.fu.filter(x=>(x.date||'')>=w).reduce((n,x)=>n+(x.kg||0),0)/7;if(!(r>0))return '';const d=Math.floor(st/r);return d<=3?`<div class="notice warn">🌾 ${st<=0?T('খাবারের স্টক শেষ','Feed stock finished'):T('খাবার প্রায় শেষ, চলবে ~','Feed running out, ~')+bn(d)+' '+T('দিন','days')}</div>`:''};
+const ftot=()=>{const f=FM(),sales=sm(f.sl,'amt')+sm(f.pd,'inc'),spent=sm(f.wp,'amt')+sm(f.an,'buy')+sm(f.fd,'amt')+sm(f.ex,'amt')+f.vc.filter(v=>v.done).reduce((n,v)=>n+(v.cost||0),0);return {sales,spent,prof:sales-spent}};
+window.fmReport=function(){const f=FM(),t=ftot(),own=+f.cap||0,pp=sm(f.pt,'amt'),tb=r=>`<table>${r||'<tr><td colspan=3>—</td></tr>'}</table>`;
+ const an=f.an.map(a=>{const c=cost(a);return `<tr><td>${esc(L(KI,a.kind))} ${esc(a.tag||'')}${a.qty>1?' × '+bn(a.qty):''} · ${L(ST,a.status)}</td><td class="r">${M(c.tot)}</td><td class="r">${M(c.sold)}</td><td class="r">${sgn(c.profit)}</td></tr>`}).join('');
+ const pt=f.pt.map(p=>`<tr><td>${esc(p.name)} · ${bn(p.share||0)}%</td><td class="r">${M(p.amt||0)}</td><td class="r">${sgn(t.prof*(p.share||0)/100)}</td></tr>`).join('');
+ const w=document.createElement('div');w.className='hf-rp';
+ w.innerHTML=`<div class="nop hf-rb"><button onclick="window.print()">🖨 PDF সেভ / প্রিন্ট</button><button onclick="this.closest('.hf-rp').remove()">✕ বন্ধ</button></div><h1>${T('খামারের রিপোর্ট','Farm report')}</h1><p>${esc(S.name||'')} · ${esc(today())}</p><div class="hf-rs"><div>${T('মোট বিক্রি','Sales')}<b>${M(t.sales)}</b></div><div>${T('মোট খরচ','Costs')}<b>${M(t.spent)}</b></div><div>${T('লাভ-ক্ষতি','Profit / loss')}<b>${sgn(t.prof)}</b></div><div>${T('মোট মূলধন','Total capital')}<b>${M(own+pp)}</b></div></div><h2>${T('পশু ও ব্যাচ (খরচ · বিক্রি · লাভ)','Animals (cost · sales · profit)')}</h2>${tb(an)}<h2>${T('অংশীদার','Partners')}</h2>${tb(pt)}`;
+ document.body.append(w)};
+const capBlock=prof=>{const f=FM(),own=+f.cap||0,pp=sm(f.pt,'amt'),c=own+pp;return `<div class=row style="margin-top:8px"><div>${T('নিজের মূলধন','Own capital')}${f.capn?`<small>${esc(f.capn)}</small>`:''}</div><div><b>${own>0?M(own):'—'}</b><button class=x onclick="fmCap()">✎</button></div></div>${pp>0?`<div class=row><div>${T('অংশীদারদের মূলধন','Partners capital')}</div><div><b>${M(pp)}</b></div></div><div class=row><div>${T('মোট মূলধন','Total capital')}</div><div><b>${M(c)}</b></div></div>`:''}${c>0?`<small>${T('হাতে আছে (আনুমানিক: মূলধন + বিক্রি − খরচ)','In hand (approx: capital + sales − costs)')}: ${M(c+prof)}</small><div class="${prof>=0?'pos':'neg'}"><small>${T('মূলধনের তুলনায় লাভ-ক্ষতি','Profit / loss vs capital')}: ${bn(Math.round(prof/c*1000)/10)}%</small></div>`:''}`};
 R.farm=function(){
  const f=FM();
- const sales=sm(f.sl,'amt'),due=sales-sm(f.sl,'paid'),spent=sm(f.an,'buy')+sm(f.fd,'amt')+sm(f.ex,'amt')+f.vc.filter(v=>v.done).reduce((n,v)=>n+(v.cost||0),0),prof=sales-spent;
+ const sales=sm(f.sl,'amt')+sm(f.pd,'inc'),due=sm(f.sl,'amt')-sm(f.sl,'paid'),spent=sm(f.wp,'amt')+sm(f.an,'buy')+sm(f.fd,'amt')+sm(f.ex,'amt')+f.vc.filter(v=>v.done).reduce((n,v)=>n+(v.cost||0),0),prof=sales-spent;
  const rem=dueVc(in7());
  const anim=f.an.slice().reverse().map(a=>{
   const c=cost(a),d=days(a),closed=a.status!='আছে',show=closed||c.sold>0;
-  return `<div class=card><b>${esc(L(KI,a.kind))} ${esc(a.tag||'')}${a.qty>1?' × '+bn(a.qty):''}</b> <small>· ${L(ST,a.status)}${a.breed?' · '+esc(a.breed):''}${a.wt?' · '+bn(a.wt)+' '+T('কেজি','kg'):''}</small>
+  return `<div class=card>${a.pic?`<img src="${a.pic}" alt="" style="width:100%;max-height:170px;object-fit:cover;border-radius:12px;margin-bottom:6px">`:''}<b>${esc(L(KI,a.kind))} ${esc(a.tag||'')}${a.qty>1?' × '+bn(a.qty):''}</b> <small>· ${L(ST,a.status)}${a.ear?' · 🏷 '+esc(a.ear):''}${a.breed?' · '+esc(a.breed):''}${a.wt?' · '+bn(a.wt)+' '+T('কেজি','kg'):''}</small>
   <div class=row><div>${T('কেনা','Bought')}</div><div>${M(c.buy)}</div></div>
   <div class=row><div>${T('খাবার','Feed')}<small>${T('দিনে প্রায়','≈ per day')} ${M(c.feed/d)}</small></div><div>${M(c.feed)}</div></div>
   <div class=row><div>${T('টিকা/ওষুধ/অন্য','Medicine / other')}</div><div>${M(c.oth)}</div></div>
-  <div class=row><div>${T('বিক্রি','Sales')}</div><div class=pos>${M(c.sold)}</div></div>
+  <div class=row><div>${T('বিক্রি','Sales')}</div><div class=pos>${M(c.sold)}</div></div>${xtra(a,c)}
   <div class=row><div><b>${show?T('লাভ-ক্ষতি','Profit / loss'):T('এ পর্যন্ত মোট খরচ','Cost so far')}</b></div><div class="${show?(c.profit>=0?'pos':'neg'):''}"><b>${show?sgn(c.profit):M(c.tot)}</b></div></div>
   <div style="display:flex;gap:6px;margin-top:6px">${closed?'':`<button class=bt style="margin:0" onclick="fmSell(${a.id})">${T('বিক্রি করুন','Sell')}</button>`}<button class=x onclick="fmAdd('an',${a.id})">✎</button><button class=x onclick="fmDel('an',${a.id})">✕</button></div></div>`}).join('')||`<small>${T('এখনো কোনো পশু/ব্যাচ নেই','No animals or batches yet')}</small>`;
  const sec=(t,n,body)=>`<details class=card><summary><b>${t}</b> (${bn(n)})</summary>${body||'<small>—</small>'}</details>`;
  return `${back()}<h2>${T('খামার','Farm')}</h2>
- <div class="card in"><small>${T('মোট বিক্রি','Total sales')}</small><b style="display:block;font-size:24px">${M(sales)}</b><small>${T('খরচ','Costs')}: ${M(spent)}${due>0?' · '+T('বাকি পাওনা','Unpaid')+': '+M(due):''}</small><div class="${prof>=0?'pos':'neg'}" style="margin-top:6px">${T('মোট লাভ-ক্ষতি','Net profit / loss')}: ${sgn(prof)}</div></div>
+ <div class="card in"><small>${T('মোট বিক্রি','Total sales')}</small><b style="display:block;font-size:24px">${M(sales)}</b><small>${T('খরচ','Costs')}: ${M(spent)}${due>0?' · '+T('বাকি পাওনা','Unpaid')+': '+M(due):''}</small><div class="${prof>=0?'pos':'neg'}" style="margin-top:6px">${T('মোট লাভ-ক্ষতি','Net profit / loss')}: ${sgn(prof)}</div>${capBlock(prof)}</div>
  ${rem.length?`<div class=card><b>💉 ${T('টিকা/ওষুধ রিমাইন্ডার','Vaccine / medicine reminders')}</b>${rem.map(v=>`<div class=row><div>${esc(vname(v))}<small class="${v.due<today()?'neg':''}">${v.due}${v.due<today()?' · '+T('মেয়াদ পার','overdue'):''}</small></div><button class=pri style="width:auto;margin:0" onclick="fmDone(${v.id})">✓ ${T('হয়েছে','Done')}</button></div>`).join('')}</div>`:''}
- <div class=g2><button class=bt onclick="fmAdd('an')">+ ${T('পশু/ব্যাচ','Animal / batch')}</button><button class=bt onclick="fmAdd('fd')">+ ${T('খাবার খরচ','Feed cost')}</button><button class=bt onclick="fmAdd('sl')">+ ${T('বিক্রি','Sale')}</button><button class=bt onclick="fmAdd('vc')">+ ${T('টিকা/ওষুধ','Vaccine / medicine')}</button><button class=bt onclick="fmAdd('ex')">+ ${T('অন্য খরচ','Other expense')}</button><button class=bt onclick="fmAdd('pd')">+ ${T('দুধ/ডিম','Milk / eggs')}</button><button class=bt onclick="fmAdd('ls')">+ ${T('মৃত্যু/ক্ষতি','Death / loss')}</button><button class=bt onclick="fmAdd('br')">+ ${T('প্রজনন','Breeding')}</button><button class=bt onclick="fmAdd('fu')">+ ${T('খাবার ব্যবহার','Feed used')}</button><button class=bt onclick="fmAdd('wl')">+ ${T('ওজন','Weight')}</button><button class=bt onclick="V='set';go()">⚙ ${T('আমার ধরন','My type')}</button></div>
- ${monthCard()}${stockCard()}${brCard()}${prodCard()}${fieldCard()}
+ <div class=g2><button class=bt onclick="fmCap()">+ ${T('মূলধন','Capital')}</button><button class=bt onclick="fmAdd('pt')">+ ${T('অংশীদার','Partner')}</button><button class=bt onclick="fmAdd('wk')">+ ${T('শ্রমিক','Worker')}</button><button class=bt onclick="fmReport()">🖨 ${T('রিপোর্ট','Report')}</button><button class=bt onclick="fmAdd('an')">+ ${T('পশু/ব্যাচ','Animal / batch')}</button><button class=bt onclick="fmAdd('fd')">+ ${T('খাবার খরচ','Feed cost')}</button><button class=bt onclick="fmAdd('sl')">+ ${T('বিক্রি','Sale')}</button><button class=bt onclick="fmAdd('vc')">+ ${T('টিকা/ওষুধ','Vaccine / medicine')}</button><button class=bt onclick="fmAdd('ex')">+ ${T('অন্য খরচ','Other expense')}</button><button class=bt onclick="fmAdd('pd')">+ ${T('দুধ/ডিম','Milk / eggs')}</button><button class=bt onclick="fmAdd('ls')">+ ${T('মৃত্যু/ক্ষতি','Death / loss')}</button><button class=bt onclick="fmAdd('br')">+ ${T('প্রজনন','Breeding')}</button><button class=bt onclick="fmAdd('fu')">+ ${T('খাবার ব্যবহার','Feed used')}</button><button class=bt onclick="fmAdd('wl')">+ ${T('ওজন','Weight')}</button><button class=bt onclick="V='set';go()">⚙ ${T('আমার ধরন','My type')}</button></div>
+ ${feedNotice()}${monthCard()}${stockCard()}${brCard()}${prodCard()}${costCard()}${fieldCard()}
  <h3>${T('পশু ও ব্যাচ','Animals & batches')}</h3>${anim}
+ ${ptSec(prof)}${wkSec()}
  ${sec(T('খাবারের হিসাব','Feed log'),f.fd.length,f.fd.slice().reverse().slice(0,30).map(e=>fr((e.item||T('খাবার','Feed'))+(e.kg?' · '+bn(e.kg)+' '+T('কেজি','kg'):''),e.date+(e.aid?' · '+albl(e.aid):''),M(e.amt),'neg','fd',e.id)).join(''))}
  ${sec(T('বিক্রির তালিকা','Sales'),f.sl.length,f.sl.slice().reverse().slice(0,30).map(s=>{const d=(s.amt||0)-(s.paid||0);return fr(L(SL,s.what)+(s.buyer?' · '+s.buyer:''),s.date+(s.aid?' · '+albl(s.aid):'')+(d>0?' · '+T('বাকি ','Unpaid ')+M(d):''),M(s.amt),'pos','sl',s.id,d>0?`<button class=x onclick="fmCollect(${s.id})">💰</button>`:'')}).join(''))}
  ${sec(T('অন্য খরচ','Other expenses'),f.ex.length,f.ex.slice().reverse().slice(0,30).map(e=>fr(L(XC,e.cat),e.date+(e.aid?' · '+albl(e.aid):'')+(e.note?' · '+e.note:''),M(e.amt),'neg','ex',e.id)).join(''))}
  ${sec(T('প্রজননের তালিকা','Breeding log'),f.br.length,f.br.slice().reverse().slice(0,30).map(r=>fr(albl(r.aid)+(r.born?' ✔':''),r.date+(r.due?' → '+r.due:''),'','','br',r.id)).join(''))}
  ${sec(T('খাবার ব্যবহারের তালিকা','Feed usage'),f.fu.length,f.fu.slice().reverse().slice(0,30).map(x=>fr(bn(x.kg)+' '+T('কেজি','kg'),x.date,'','','fu',x.id)).join(''))}
  ${sec(T('ওজনের তালিকা','Weight log'),f.wl.length,f.wl.slice().reverse().slice(0,30).map(x=>fr(albl(x.aid)+' · '+bn(x.kg)+' '+T('কেজি','kg'),x.date,'','','wl',x.id)).join(''))}
- ${sec(T('উৎপাদনের তালিকা','Production log'),f.pd.length,f.pd.slice().reverse().slice(0,30).map(p=>fr(L(PK,p.what)+' · '+bn(p.qty),p.date+(p.aid?' · '+albl(p.aid):''),'','','pd',p.id)).join(''))}
+ ${sec(T('উৎপাদনের তালিকা','Production log'),f.pd.length,f.pd.slice().reverse().slice(0,30).map(p=>fr(L(PK,p.what)+' · '+bn(p.qty),p.date+(p.aid?' · '+albl(p.aid):'')+(p.inc>0?' · '+M(p.inc):''),'','','pd',p.id)).join(''))}
  ${sec(T('মৃত্যু/ক্ষতির তালিকা','Deaths / losses'),f.ls.length,f.ls.slice().reverse().slice(0,30).map(p=>fr(albl(p.aid)+' · '+bn(p.qty),p.date+(p.note?' · '+p.note:''),'','neg','ls',p.id)).join(''))}
  ${sec(T('টিকা ও ওষুধের তালিকা','Vaccines & medicine'),f.vc.length,f.vc.slice().sort((a,b)=>a.due<b.due?1:-1).slice(0,30).map(v=>fr((v.done?'✔ ':'')+vname(v),(v.done?v.donedate:v.due)+(v.cost>0?' · '+M(v.cost):''),'','','vc',v.id)).join(''))}`;
 };
